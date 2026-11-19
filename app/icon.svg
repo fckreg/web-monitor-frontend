@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <title>На связи</title>
+  <rect width="32" height="32" rx="8" fill="#f4f7f5"/>
+  <rect x="7.8" y="9" width="4" height="14" rx="2" fill="#1f9a62"/>
+  <rect x="14" y="9" width="4" height="14" rx="2" fill="#1f9a62"/>
+  <rect x="20.2" y="9" width="4" height="14" rx="2" fill="#e15a52"/>
+</svg>

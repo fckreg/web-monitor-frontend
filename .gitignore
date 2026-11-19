@@ -1,0 +1,25 @@
+﻿# Secrets
+.env
+.env.local
+.sentryclirc
+.env.sentry-build-plugin
+
+# Node
+node_modules/
+.next/
+dist/
+coverage/
+*.tsbuildinfo
+test-results/
+playwright-report/
+lighthouse-report/
+.lighthouseci/
+AGENTS.md
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.cursor/
+*.log

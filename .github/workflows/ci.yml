@@ -1,0 +1,71 @@
+﻿name: ci
+
+on:
+  push:
+    paths-ignore: ["**/*.md"]
+  pull_request:
+    paths-ignore: ["**/*.md"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Бэкенд в CI не поднимается: публичные страницы рендерят состояние ошибки,
+# этого достаточно для проверок доступности, SEO-разметки и сборки.
+env:
+  BACKEND_URL: http://127.0.0.1:9
+  SITE_URL: http://127.0.0.1:3000
+  INDEXING_ENABLED: "true"
+  NEXT_TELEMETRY_DISABLED: "1"
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.1
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm format:check
+      - run: pnpm lint:fsd
+      - run: pnpm test
+      - run: pnpm build
+      - run: pnpm typecheck
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e
+      - name: Lighthouse CI
+        run: pnpm dlx @lhci/cli@0.15.x autorun
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-reports
+          path: |
+            test-results
+            lighthouse-report
+          retention-days: 7
+
+  notify-deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [check]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Сигнал deploy-frontend в web-monitor-deploy
+        env:
+          GH_TOKEN: ${{ secrets.DEPLOY_PAT }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "Задайте secret DEPLOY_PAT (PAT с доступом repo к fckreg/web-monitor-deploy)."
+            exit 1
+          fi
+          gh api --method POST \
+            -H "Accept: application/vnd.github+json" \
+            /repos/fckreg/web-monitor-deploy/dispatches \
+            -f event_type=deploy-frontend \
+            -f "client_payload[sha]=${{ github.sha }}"

@@ -1,0 +1,9 @@
+﻿pre-commit:
+  parallel: true
+  commands:
+    eslint:
+      run: pnpm exec eslint .
+    prettier:
+      run: pnpm exec prettier --check .
+    steiger:
+      run: pnpm exec steiger ./src
